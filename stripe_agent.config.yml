@@ -1,0 +1,14 @@
+newrelic:
+  license: ''
+  guid: 'io.iron.stripe_agent'
+  version: '1' # bump this everytime you upload a changed worker
+
+iron:
+  token: 'IRON_TOKEN'
+  project_id: 'PROJECT_ID'
+
+stripe:
+  api_key: 'Stripe API Key'
+
+# set `test_mode` to true for generate random Stripe's data 
+test_mode: false

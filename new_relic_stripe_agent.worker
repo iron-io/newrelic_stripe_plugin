@@ -1,0 +1,10 @@
+runtime 'ruby'
+exec 'stripe_agent.rb'
+
+# uncomment when newrelic-platform gem will be public
+# gem_file 'Gemfile'
+
+gem 'newrelic_platform'
+gem 'stripe'
+gem 'iron_cache'
+gem 'activesupport'
