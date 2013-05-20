@@ -2,7 +2,6 @@ require 'yaml'
 require 'stripe'
 require 'base64'
 require 'iron_cache'
-require 'active_support/core_ext'
 # Requires manual installation of the New Relic plaform gem
 # https://github.com/newrelic-platform/iron_sdk
 require 'newrelic_platform'
