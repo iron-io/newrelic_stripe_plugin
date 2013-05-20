@@ -33,6 +33,14 @@ def duration(from, to)
   dur > 3600 ? 3600 : dur
 end
 
+def up_to(to = nil)
+  if to
+    @up_to = Time.at(to.to_i).utc
+  else
+    @up_to ||= Time.now.utc
+  end
+end
+
 def processed_at(processed = nil)
   if processed
     @cache.put('previously_processed_at', processed.to_i)
@@ -41,7 +49,7 @@ def processed_at(processed = nil)
   elsif @at.nil?
     item = @cache.get 'previously_processed_at'
 
-    @at = item ? item.value : (@up_to - 3600).to_i
+    @at = item ? item.value : (up_to - 3600).to_i
   else
     @at
   end
@@ -129,14 +137,14 @@ def process_and_post_stats
   collector = @new_relic.new_collector
   component = collector.component 'Stripe'
   # Request stats up to current time
-  @up_to = Time.now.utc
+  up_to
 
   yield component
 
-  component.options[:duration] = duration(processed_at, @up_to)
+  component.options[:duration] = duration(processed_at, up_to)
   collector.submit
 
-  processed_at @up_to
+  processed_at up_to
 end
 
 
@@ -148,7 +156,7 @@ process_and_post_stats do |component|
              Stripe::Charge,
              {:created => {
                  :gt => processed_at,
-                 :lte => @up_to
+                 :lte => up_to
                }
              })
 
@@ -157,7 +165,7 @@ process_and_post_stats do |component|
              Stripe::Transfer,
              {:date => {
                  :gt => processed_at,
-                 :lte => @up_to
+                 :lte => up_to
                }
              })
 end
