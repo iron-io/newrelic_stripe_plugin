@@ -45,23 +45,31 @@ def processed_at(processed = nil)
   if processed
     @cache.put('previously_processed_at', processed.to_i)
 
-    @at = processed.to_i
-  elsif @at.nil?
+    @processed_at = Time.at(processed.to_i).utc
+  elsif @processed_at.nil?
     item = @cache.get 'previously_processed_at'
+    min_prev_allowed = (up_to - 3600).to_i
 
-    @at = item ? item.value : (up_to - 3600).to_i
+    at = if item && item.value.to_i > min_prev_allowed
+           item.value
+         else
+           min_prev_allowed
+         end
+
+    @processed_at = Time.at(at).utc
   else
-    @at
+    @processed_at
   end
 end
 
 def generate_random_data(count = 3)
   (1..count).each_with_object([]) do |_, data|
-    # amount is in range $200..1000
+    # amount is in range $200..999
     amount = Random.rand(800) + 200
-    fee_rate = (Random.rand(8) + 3)
-    # fee is 5% of amount
-    data << {:currency => 'usd', :amount => amount, :fee => 0.05 * amount}
+    # fee rate is in 3..10%
+    fee_rate = (Random.rand(8) + 3) / 100.0
+
+    data << {:currency => 'usd', :amount => amount, :fee => fee_rate * amount}
   end
 end
 
