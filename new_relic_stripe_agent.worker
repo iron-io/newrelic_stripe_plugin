@@ -1,5 +1,6 @@
 runtime 'ruby'
 exec 'stripe_agent.rb'
+name 'Strip Agent (New Relic)'
 
 # uncomment when newrelic-platform gem will be public
 # gem_file 'Gemfile'
