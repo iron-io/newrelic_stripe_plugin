@@ -22,10 +22,21 @@ STRIPE_MAX_COUNT = 100
                                   :version => config['newrelic']['version'])
 
 # Configure IronCache client
-ic = IronCache::Client.new(config['iron'])
-@cache = ic.cache("newrelic-stripe-agent")
+begin
+  @cache = IronCache::Client.new(config['iron']).cache("newrelic-stripe-agent")
+rescue Exception => err
+  abort 'Iron.io credentials are wrong.'
+end
 
 # Helpers
+def stderr_to_stdout
+  $stderr_backup = $stderr unless $stderr_backup
+  $stderr = $stdout
+end
+
+def restore_stderr
+  $stderr = $stderr_backup if $stderr_backup
+end
 
 def duration(from, to)
   dur = from ? (to - from).to_i : 3600
@@ -91,8 +102,18 @@ def process_to(component, stat_class, opts = {})
 
   begin
     objects = unless config['test_mode']
-                stat_class.all({ :count => STRIPE_MAX_COUNT,
-                                 :offset => offset }.merge(opts))
+                begin
+                  stat_class.all({ :count => STRIPE_MAX_COUNT,
+                                   :offset => offset }.merge(opts))
+                rescue Exception => err
+                  restore_stderr
+                  if err.message =~ /Invalid API Key provided/
+                    abort 'Invalid Stripe API Key.'
+                  else
+                    abort("Error happened while retrieving data from Stripe. " +
+                          "Error message: '#{err.message}'.")
+                  end
+                end
               else
                 generate_random_data
               end
@@ -128,7 +149,7 @@ def process_to(component, stat_class, opts = {})
     end
 
     offset += STRIPE_MAX_COUNT
-  end while objects.size == STRIPE_MAX_COUNT
+  end while objects.count == STRIPE_MAX_COUNT
 
   # Send stats to New Relic
   stats.each do |currency, stat|
@@ -150,21 +171,32 @@ def process_and_post_stats
   yield component
 
   component.options[:duration] = duration(processed_at, up_to)
-  collector.submit
+  begin
+    # submit statistics
+    collector.submit
+  rescue Exception => err
+    restore_stderr
+    if err.message.downcase =~ /http 403/
+      abort "Seems New Relic's license key is wrong."
+    else
+      abort("Error happened while sending data to New Relic. " +
+            "Error message: '#{err.message}'.")
+    end
+  end
 
   processed_at up_to
 end
 
 
 # Processing
-
+stderr_to_stdout
 process_and_post_stats do |component|
   # Stripe's Charges
   process_to(component,
              Stripe::Charge,
              {:created => {
-                 :gt => processed_at,
-                 :lte => up_to
+                 :gt => processed_at.to_i,
+                 :lte => up_to.to_i
                }
              })
 
@@ -172,8 +204,8 @@ process_and_post_stats do |component|
   process_to(component,
              Stripe::Transfer,
              {:date => {
-                 :gt => processed_at,
-                 :lte => up_to
+                 :gt => processed_at.to_i,
+                 :lte => up_to.to_i
                }
              })
 end
