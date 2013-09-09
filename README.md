@@ -38,7 +38,7 @@ Boom, done!  It can take 5-10 minutes for data to show up in New Relic so be pat
 You can use IronWorker's [Turnkey Workers](http://dev.iron.io/worker/turnkey) feature. 
 
 1. Log in to https://hud.iron.io/worker/turnkey
-1. Enter `https://github.com/iron-io/newrelic_pase_plugin/blob/master/stripe_agent.worker` in the "Worker URL" field.
+1. Enter `https://github.com/iron-io/newrelic_stripe_plugin/blob/master/stripe_agent.worker` in the "Worker URL" field.
 1. Complete the rest of the form and fill in the config
 1. Click upload
 1. Click queue to run it once to test it (check that data shows up in NewRelic)
