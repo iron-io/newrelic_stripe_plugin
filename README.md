@@ -52,7 +52,7 @@ these instructions.
 1. Install the iron_worker_ng gem: `gem install iron_worker_ng`
 1. Make a copy of stripe_agent.config.yml and call it `config.yml`. Fill it in with your credentials.
 1. Upload the worker to IronWorker: `iron_worker upload --config config.yml stripe_agent --worker-config config.yml`
-1. Test it: `iron_worker queue --config config.yml parase_agent --wait` - can also check task status at http://hud.iron.io
+1. Test it: `iron_worker queue --config config.yml stripe_agent --wait` - can also check task status at http://hud.iron.io
 1. Schedule it: `iron_worker schedule --config config.yml stripe_agent --run-every 60`
 
 That's it! You will now see data in New Relic forever!
